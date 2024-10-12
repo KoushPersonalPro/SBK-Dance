@@ -78,19 +78,18 @@ export default function Dashboard() {
       heightLeft -= pageHeight;
     }
 
-    const stampImage: HTMLImageElement = new Image();
-    stampImage.src = 'stamp.png'; // Path to your stamp image
-  stampImage.onload = () => {
+        const stampImage = new Image();
+stampImage.src = 'stamp.png'; // Path to your stamp image
+stampImage.onload = () => {
   const pdfWidth = pdf.internal.pageSize.width;
   const pdfHeight = pdf.internal.pageSize.height;
   const stampX = (pdfWidth / 2) - (100 / 2);
   const stampY = (pdfHeight / 2) - (100 / 2);
 
-  pdf.setGState(new pdf.GState({ opacity: 0.1 })); // Set the opacity for watermark
-  pdf.addImage(stampImage, 'PNG', stampX, stampY, 100, 100); // Add the stamp image as watermark
-  pdf.setGState(new pdf.GState({ opacity: 1 })); // Reset opacity
+  // Directly add the image without GState
+  pdf.addImage(stampImage, 'PNG', stampX, stampY, 100, 100); // Add the stamp image
 
-  pdf.save('SBK_Identity_Card.pdf'); // Save the PDF
+  pdf.save('SBK_Identity_Card.pdf');
 };
 
 
