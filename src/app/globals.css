@@ -25,3 +25,37 @@ body {
     text-wrap: balance;
   }
 }
+
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-scroll {
+  display: flex;
+  animation: scroll 20s linear infinite; /* Adjust the duration as needed */
+  width: calc(300px * 9); /* 300px width * 6 original + 3 clones */
+}
+
+img {
+  width: 300px; /* Set fixed width */
+  height: 100%; /* Maintain height to match the carousel */
+  object-fit: cover; /* Maintain aspect ratio without distortion */
+}
+
+.curve-path {
+  position: absolute;
+  left: 10%; /* Adjust left position as needed */
+  top: 0;
+  height: 50%; /* Adjust height as needed */
+  width: 1px; /* Set a very small width for the line */
+  background: rgba(0, 0, 0, 0); /* Make background fully transparent */
+  clip-path: path("M0,0 C0,100 100,100 100,200 L100,300 L0,300 Z"); /* Curvy path */
+  border-left: 1px solid rgba(0, 0, 0, 0.2); /* Optional: thin visible line */
+}
+
