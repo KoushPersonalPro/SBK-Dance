@@ -1,5 +1,3 @@
-// Mobile Device code
-
 "use client";
 import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
@@ -7,8 +5,18 @@ import Footer from '@/components/Footer';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
+// Define a type for your gallery items
+interface GalleryItem {
+  id: string;
+  url: string; // Add any other properties you expect to have
+  name: string;
+  type: 'image' | 'video'; // Use union type for type
+  description?: string; // Optional if not all items have descriptions
+}
+
 export default function Galleryshow() {
-  const [gallery, setGallery] = useState([]);
+  // Specify the type for the gallery state
+  const [gallery, setGallery] = useState<GalleryItem[]>([]);
 
   useEffect(() => {
     fetchGallery(); // Fetch the gallery items when the component mounts
@@ -16,11 +24,11 @@ export default function Galleryshow() {
 
   const fetchGallery = async () => {
     const querySnapshot = await getDocs(collection(db, 'gallery'));
-    const items = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    const items = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as GalleryItem[];
     setGallery(items);
   };
 
-  const handleDownload = (item) => {
+  const handleDownload = (item: GalleryItem) => {
     const link = document.createElement('a');
     link.href = item.url; // Use the URL from Firestore for download
     link.download = item.name;
@@ -57,25 +65,25 @@ export default function Galleryshow() {
           </div>
         </section>
 
-       {/* Video Section */}
-<section className="py-16 bg-white">
-  <div className="container mx-auto px-4">
-    <h2 className="text-3xl font-bold text-center mb-10">Our Video Gallery</h2>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-      {gallery.map((item) => (
-        item.type === 'video' ? (
-          <div key={item.id} className="mb-5">
-            <video controls className="w-full h-auto rounded-lg"> {/* Added rounded corners for aesthetics */}
-              <source src={item.url} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-            <p className="text-lg text-center">{item.description}</p>
+        {/* Video Section */}
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-10">Our Video Gallery</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              {gallery.map((item) => (
+                item.type === 'video' ? (
+                  <div key={item.id} className="mb-5">
+                    <video controls className="w-full h-auto rounded-lg"> {/* Added rounded corners for aesthetics */}
+                      <source src={item.url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                    <p className="text-lg text-center">{item.description}</p>
+                  </div>
+                ) : null // Only show videos here
+              ))}
+            </div>
           </div>
-        ) : null // Only show videos here
-      ))}
-    </div>
-  </div>
-</section>
+        </section>
       </main>
       <Footer />
     </div>
