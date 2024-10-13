@@ -11,7 +11,7 @@ export default function HomePage() {
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="relative bg-gray-100 text-center py-20">
+        <section className="relative bg-gray-100 text-center py-20" style={{cursor : "default"}}>
           <div className="container mx-auto relative z-10">
             <h1 className="text-4xl font-bold mb-4 text-gray-800">
               Welcome to Our Dance Institute

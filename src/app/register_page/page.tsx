@@ -13,7 +13,7 @@ export default function Register() {
   const [dob, setDob] = useState('');
   const [age, setAge] = useState('');
   const [address, setAddress] = useState('');
-  const [studentImage, setStudentImage] = useState<File | null>(null); // Changed to handle File object
+  const [studentImage, setStudentImage] = useState<File | null>(null); // Handle File object
   const [parentName, setParentName] = useState('');
   const [parentMobile, setParentMobile] = useState('');
   const [email, setEmail] = useState('');
@@ -22,28 +22,49 @@ export default function Register() {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  // Function to calculate age based on selected DOB
+  const calculateAge = (dob: string) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    // If birth date is greater than today’s date (after current month and day), decrease age by 1
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // Handle DOB change
+  const handleDobChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDob = e.target.value;
+    setDob(selectedDob);
+    const calculatedAge = calculateAge(selectedDob);
+    setAge(calculatedAge.toString());
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     // Check if passwords match
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
-  
+
     try {
       // Attempt to create a new user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       console.log('User:', user); // Log the user object
-  
+
       // Prepare to upload the image if it's selected
       let imageUrl = '';
       if (studentImage) {
         // Sanitize the file name
         const sanitizedFileName = studentImage.name.replace(/\s+/g, '_'); // Replace spaces with underscores
         const storageRef = ref(getStorage(), `student_images/${user.uid}/${sanitizedFileName}`);
-        
+
         try {
           // Upload the file
           await uploadBytes(storageRef, studentImage);
@@ -55,7 +76,7 @@ export default function Register() {
           return;
         }
       }
-  
+
       // Save additional user details in the database under user.uid
       await setDoc(doc(db, 'users', user.uid), {
         studentName,
@@ -66,7 +87,7 @@ export default function Register() {
         parentName,
         parentMobile,
       });
-  
+
       alert('Registration successful');
       router.push('/auth'); // Redirect to login page
     } catch (err: any) {
@@ -81,8 +102,7 @@ export default function Register() {
       }
     }
   };
-  
-  
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -106,17 +126,18 @@ export default function Register() {
           <input
             type="date"
             value={dob}
-            onChange={(e) => setDob(e.target.value)}
+            onChange={handleDobChange} // Handle DOB change to calculate age
             className="border rounded-lg p-2 w-full text-black"
             required
           />
           <input
             type="number"
             placeholder="Age"
-            value={age}
-            onChange={(e) => setAge(e.target.value)}
+            value={age} // Age will be automatically calculated
+            onChange={(e) => setAge(e.target.value)} // Keep it editable in case
             className="border rounded-lg p-2 w-full text-black"
             required
+            readOnly // Age is read-only, calculated from DOB
           />
           <input
             type="text"

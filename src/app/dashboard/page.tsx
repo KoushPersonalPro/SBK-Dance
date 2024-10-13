@@ -17,7 +17,7 @@ interface UserData {
   address: string;
   parentName: string;
   parentMobile: string;
-  paymentStatus: boolean;
+  paymentStatus: string;
   month?: string;
   batchNo?: number;
   attendance?: string;
@@ -143,7 +143,7 @@ stampImage.onload = () => {
                 <strong>Parent's Mobile Number:</strong> {userData.parentMobile}
               </p>
               <p className="text-gray-600">
-                <strong>Payment Status:</strong> {userData.paymentStatus ? 'Paid' : 'Pending'}
+                <strong>Payment Status:</strong> {userData.paymentStatus || 'N/A'}
               </p>
               <p className="text-gray-600">
                 <strong>Month:</strong> {userData.month || 'N/A'}

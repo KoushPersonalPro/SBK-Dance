@@ -94,7 +94,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const togglePaymentStatus = async (user: User) => {
-    const newStatus = user.paymentStatus === 'Pending' ? 'Paid' : 'Pending';
+    const newStatus = user.paymentStatus === 'Paid' ? 'Pending' : 'Paid';
     await updateDoc(doc(db, 'users', user.id), { paymentStatus: newStatus });
     fetchUsers();
   };
