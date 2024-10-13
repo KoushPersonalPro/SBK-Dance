@@ -17,15 +17,26 @@ interface GalleryItem {
 export default function Galleryshow() {
   // Specify the type for the gallery state
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGallery(); // Fetch the gallery items when the component mounts
   }, []);
 
   const fetchGallery = async () => {
-    const querySnapshot = await getDocs(collection(db, 'gallery'));
-    const items = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as GalleryItem[];
-    setGallery(items);
+    setLoading(true);
+    setError(null);
+    try {
+      const querySnapshot = await getDocs(collection(db, 'gallery'));
+      const items = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as GalleryItem[];
+      setGallery(items);
+    } catch (error) {
+      console.error("Error fetching gallery: ", error);
+      setError("Failed to load gallery items.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDownload = (item: GalleryItem) => {
@@ -34,6 +45,9 @@ export default function Galleryshow() {
     link.download = item.name;
     link.click();
   };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-black">

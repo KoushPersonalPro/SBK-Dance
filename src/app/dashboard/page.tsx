@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -93,9 +94,6 @@ stampImage.onload = () => {
   pdf.save('SBK_Identity_Card.pdf');
 };
 
-
-
-    pdf.save('SBK_Identity_Card.pdf');
 
     setDownloadText('Downloaded');
     setTimeout(() => {

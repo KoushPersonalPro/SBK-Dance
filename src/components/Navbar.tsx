@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { auth } from '@/lib/firebase'; // Firebase auth import
+import { auth} from '@/lib/firebase'; // Import User type from Firebase
 import { useRouter } from 'next/navigation';
+import { User } from 'firebase/auth'; // Import the User type
+
 
 export default function Navbar() {
-  const [user, setUser] = useState(null); // State to hold user authentication status
+  const [user, setUser] = useState<User | null>(null); // State to hold user authentication status
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu toggle
   const router = useRouter();
 
@@ -100,7 +102,7 @@ export default function Navbar() {
           <Link href="/" className="block text-gray-600 hover:text-gray-800">
             About Us
           </Link>
-          <Link href="/gallery" className="block text-gray-600 hover:text-gray-800">
+          <Link href="/galleryshow" className="block text-gray-600 hover:text-gray-800">
             Gallery
           </Link>
           <Link href="/" className="block text-gray-600 hover:text-gray-800">

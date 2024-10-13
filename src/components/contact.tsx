@@ -40,7 +40,7 @@ export default function Contact() {
           width="100%"
           height="450"
           className="rounded-lg border border-gray-200"
-          allowFullScreen=""
+          allowFullScreen
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
         ></iframe>
@@ -84,7 +84,7 @@ export default function Contact() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="mt-1 block w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            rows="5"
+            rows={5}
             required
           />
         </div>
