@@ -1,114 +1,122 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { db } from '../lib/firebase';
-import { collection,getDoc, getDocs, updateDoc, deleteDoc, doc,setDoc  } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-
-interface User {
+export interface User {
   id: string;
   studentName: string;
   studentImage: string;
-  age: string;
+  age: number;
   dob: string;
   address: string;
   parentName: string;
   parentMobile: string;
-  attendance: string; // 'P' for Present, 'A' for Absent
+  attendance: Record<string, string>;
   paymentStatus: string;
   batchNo?: number;
-  note?: string; 
+  note?: string;
 }
 
-const AdminDashboard: React.FC = () => {
+
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Download, LogOut, Settings, Home } from 'lucide-react';
+// import { User } from '././AdminDashboard/types';
+import StudentTable from './AdminDashboard/StudentTable';
+import DashboardStats from './AdminDashboard/DashboardStats';
+import AttendanceCalendar from './AdminDashboard/AttendanceCalender';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { format } from 'date-fns';
+import Link from 'next/link';
+
+export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
   const [isRegistrationBlocked, setIsRegistrationBlocked] = useState(false);
-  const auth = getAuth();
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const checkUserAuth = async () => {
       const auth = getAuth();
       const user = auth.currentUser;
-      if (user) {
-        if (user.email === 'test@gmail.com') {
-          await fetchUsers();
-        } else {
-          setLoading(false);
-        }
+      if (user?.email === 'test@gmail.com') {
+        await fetchUsers();
+        await fetchRegistrationStatus();
       } else {
-        setLoading(false);
+        router.push('/auth');
       }
+      setLoading(false);
     };
     checkUserAuth();
-  }, []);
+  }, [router]);
 
   const fetchUsers = async () => {
     try {
       const usersCollection = collection(db, 'users');
       const userSnapshot = await getDocs(usersCollection);
-
-      if (userSnapshot.empty) {
-        setUsers([]);
-        return;
-      }
-
-      const userList: User[] = userSnapshot.docs.map(doc => ({
+      const userList = userSnapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
+        ...(doc.data() as Partial<User>),
+        attendance: doc.data().attendance || {},
       })) as User[];
-
       setUsers(userList);
-      setFilteredUsers(userList);
-    } catch (err) {
-      setError('Failed to fetch user data');
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching users:', error);
     }
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const term = event.target.value.toLowerCase();
-    setSearchTerm(term);
-    const filtered = users.filter(user => {
-      const monthName = getCurrentMonth();
-      return (
-        user.studentName.toLowerCase().includes(term) ||
-        user.id.includes(term) ||
-        monthName.toLowerCase().includes(term) // Search by month
-      );
-    });
-    setFilteredUsers(filtered);
+  const fetchRegistrationStatus = async () => {
+    try {
+      const docRef = doc(db, 'settings', 'registrationStatus');
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setIsRegistrationBlocked(docSnap.data().blocked);
+      }
+    } catch (error) {
+      console.error('Error fetching registration status:', error);
+    }
   };
 
-  const toggleAttendance = async (user: User) => {
-    const newStatus = user.attendance === 'P' ? 'A' : 'P';
-    await updateDoc(doc(db, 'users', user.id), { attendance: newStatus });
+  const toggleRegistrationStatus = async () => {
+    try {
+      const docRef = doc(db, 'settings', 'registrationStatus');
+      await updateDoc(docRef, { blocked: !isRegistrationBlocked });
+      setIsRegistrationBlocked(!isRegistrationBlocked);
+    } catch (error) {
+      console.error('Error updating registration status:', error);
+    }
+  };
+
+  const handleToggleAttendance = async (user: User, date: string) => {
+    const currentStatus = user.attendance[date] || '';
+    const newStatus = currentStatus === 'P' ? 'A' : 'P';
+    const updatedAttendance = { ...user.attendance, [date]: newStatus };
+    
+    await updateDoc(doc(db, 'users', user.id), { attendance: updatedAttendance });
     fetchUsers();
   };
 
-  const togglePaymentStatus = async (user: User) => {
+  const handleTogglePayment = async (user: User) => {
     const newStatus = user.paymentStatus === 'Paid' ? 'Pending' : 'Paid';
     await updateDoc(doc(db, 'users', user.id), { paymentStatus: newStatus });
     fetchUsers();
   };
-  const updateBatchNo = async (user: User, newBatchNo: number) => {
-    await updateDoc(doc(db, 'users', user.id), { batchNo: newBatchNo });
-    fetchUsers();
-  };
-  const updateNote = async (user: User, newNote: string) => {
-    await updateDoc(doc(db, 'users', user.id), { note: newNote });
+
+  const handleUpdateBatch = async (user: User, batchNo: number) => {
+    await updateDoc(doc(db, 'users', user.id), { batchNo });
     fetchUsers();
   };
 
-  const removeUser = async (userId: string) => {
-    if (confirm('Are you sure you want to remove this student?')) {
+  const handleUpdateNote = async (user: User, note: string) => {
+    await updateDoc(doc(db, 'users', user.id), { note });
+    fetchUsers();
+  };
+
+  const handleRemoveUser = async (userId: string) => {
+    if (window.confirm('Are you sure you want to remove this student?')) {
       await deleteDoc(doc(db, 'users', userId));
       fetchUsers();
     }
@@ -117,247 +125,133 @@ const AdminDashboard: React.FC = () => {
   const downloadPDF = () => {
     const doc = new jsPDF();
     doc.text('Students Data Report', 14, 16);
-    doc.text('Sri Lakshmi Bharatanatya Kalakshetram', 14,7);
-    const tableColumns = ['Name', 'Age', 'DOB', 'Parent Mobile', 'Attendance', 'Payment Status', 'Batch No.', 'Month', 'Note'];
-    const tableRows: string[][] = [];
+    doc.text('Sri Lakshmi Bharatanatya Kalakshetram', 14, 7);
+    doc.text(`Date: ${format(new Date(), 'dd/MM/yyyy')}`, 14, 25);
 
-    filteredUsers.forEach(user => {
-      const userRow = [
-        user.studentName,
-        user.age,
-        user.dob,
-        user.parentMobile,
-        user.attendance,
-        user.paymentStatus,
-        user.batchNo?.toString() || 'N/A',
-        getCurrentMonth(),
-        user.note || ''
-      ];
-      tableRows.push(userRow);
-    });
+    const tableColumns = ['Name', 'Age', 'Parent Mobile', "Today's Attendance", 'Payment', 'Batch'];
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const tableRows = users.map(user => [
+      user.studentName,
+      user.age,
+      user.parentMobile,
+      user.attendance[today] || 'Not Marked',
+      user.paymentStatus,
+      user.batchNo?.toString() || 'N/A',
+    ]);
 
     (doc as any).autoTable({
       head: [tableColumns],
       body: tableRows,
-      startY: 20,
+      startY: 30,
     });
 
-    doc.save('sbk_user_data.pdf');
+    doc.save('student_data.pdf');
   };
 
-  // Helper function to get current month name
-  const getCurrentMonth = (): string => {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    const currentMonthIndex = new Date().getMonth();
-    return months[currentMonthIndex];
+  const handleLogout = async () => {
+    const auth = getAuth();
+    await auth.signOut();
+    router.push('/auth');
   };
 
-
-  const fetchRegistrationStatus = async () => {
-    try {
-      const docRef = doc(db, 'settings', 'registrationStatus');
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setIsRegistrationBlocked(docSnap.data().blocked);
-      } else {
-        console.log("No such document!");
-      }
-    } catch (error) {
-      console.error("Error fetching registration status: ", error);
-    }
-  };
-
-  const toggleRegistrationStatus = async (status: boolean) => {
-    try {
-      const docRef = doc(db, 'settings', 'registrationStatus');
-      await updateDoc(docRef, { blocked: status });
-      console.log("Registration status updated to: ", status ? "blocked" : "open");
-      // Reload the page after updating the status
-      window.location.reload(); 
-    } catch (error) {
-      console.error("Error updating registration status: ", error);
-    }
-  };
-  
-  const blockRegistration = () => {
-    if (window.confirm("Are you sure you want to block registration?")) {
-      toggleRegistrationStatus(true);
-    }
-  };
-  
-  const unblockRegistration = () => {
-    if (window.confirm("Are you sure you want to unblock registration?")) {
-      toggleRegistrationStatus(false);
-    }
-  };
-  useEffect(() => {
-    fetchRegistrationStatus();
-  }, []);
-
-
-
-  if (loading) return <div>Loading user data...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 bg-white min-h-screen">
-      <h1 className="text-2xl font-bold mb-4 text-black">Admin Dashboard</h1>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <Link className="text-2xl font-bold text-gray-900" href="/">Admin Dashboard</Link>
+              <p className="ml-4 text-sm text-gray-500">
+                {format(new Date(), 'EEEE, MMMM d, yyyy')}
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.push('/admin/update-gallery')}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Gallery Settings
+              </button>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
 
-      <input
-        type="text"
-        placeholder="Search by Student Name, User ID, or Month"
-        value={searchTerm}
-        onChange={handleSearch}
-        className="border border-gray-300 p-2 mb-4 rounded w-full text-black"
-      />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <DashboardStats users={users} />
 
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button
-          onClick={() => router.push('/admin/update-gallery')} // Redirect to update gallery page
-          className="mb-3 border border-black text-black bg-transparent px-6 py-2 rounded hover:text-gray-300 transition duration-300"
-        >
-          Update Gallery
-        </button>
-        <button
-          onClick={async () => {
-            const auth = getAuth();
-            await auth.signOut();
-            router.push('/auth');
-          }}
-          className="mb-4 bg-red-500 text-white px-6 py-2 rounded hover:text-gray-300"
-        >
-          Logout
-        </button>
-      </div>
-
-      {/* User Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full table-auto border-collapse border border-gray-400 bg-white text-black">
-          <thead>
-            <tr className="bg-gray-100">
-              
-              <th className="border border-gray-300 p-2">Name</th>
-              <th className="border border-gray-300 p-2">Image</th>
-              <th className="border border-gray-300 p-2">Age</th>
-              <th className="border border-gray-300 p-2">DOB</th>
-              <th className="border border-gray-300 p-2">Address</th>
-              <th className="border border-gray-300 p-2">Parent Name</th>
-              <th className="border border-gray-300 p-2">Parent Mobile</th>
-              <th className="border border-gray-300 p-2">Attendance</th>
-              <th className="border border-gray-300 p-2">Payment Status</th>
-              <th className="border border-gray-300 p-2">Batch No.</th>
-              <th className="border border-gray-300 p-2">Month</th> {/* New Month Column */}
-              <th className="border border-gray-300 p-2">Note</th>
-              <th className="border border-gray-300 p-2">Remove</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.map(user => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                
-                <td className="border border-gray-300 p-2">{user.studentName}</td>
-                <td className="border border-gray-300 p-2">
-                  {user.studentImage ? (
-                    <img
-                      src={user.studentImage}
-                      alt="Student"
-                      className="w-16 h-16 object-cover rounded-full"
-                    />
-                  ) : (
-                    "No Image"
-                  )}
-                </td>
-                <td className="border border-gray-300 p-2">{user.age}</td>
-                <td className="border border-gray-300 p-2">{user.dob}</td>
-                <td className="border border-gray-300 p-2">{user.address}</td>
-                <td className="border border-gray-300 p-2">{user.parentName}</td>
-                <td className="border border-gray-300 p-2">{user.parentMobile}</td>
-                <td className="border border-gray-300 p-2">
-                  <button
-                    onClick={() => toggleAttendance(user)}
-                    className={`px-4 py-1 rounded ${user.attendance === 'P' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}
-                  >
-                    {user.attendance}
-                  </button>
-                </td>
-                <td className="border border-gray-300 p-2">
-                  <button
-                    onClick={() => togglePaymentStatus(user)}
-                    className={`px-4 py-1 rounded ${user.paymentStatus === 'Paid' ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black'}`}
-                  >
-                    {user.paymentStatus}
-                  </button>
-                </td>
-                <td className="border border-gray-300 p-2">
-                  <input
-                    type="number"
-                    placeholder="Batch No"
-                    value={user.batchNo || ''}
-                    min={1}
-                    max={9}
-                    onChange={(e) => updateBatchNo(user, Number(e.target.value))}
-                    className="border border-gray-300 rounded p-1"
-                  />
-                </td>
-                <td className="border border-gray-300 p-2">{getCurrentMonth()}</td> {/* Month Column */}
-                <td className="border border-gray-300 p-2">
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 bg-white shadow rounded-lg">
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                <div className="flex-1 min-w-0">
                   <input
                     type="text"
-                    value={user.note || ''}
-                    onChange={(e) => updateNote(user, e.target.value)}
-                    className="border border-gray-300 p-1 w-32 text-black"
+                    placeholder="Search students..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-xs w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
                   />
-                  </td>
-                <td className="border border-gray-300 p-2">
+                </div>
+                <div className="mt-4 sm:mt-0 flex space-x-4">
                   <button
-                    onClick={() => removeUser(user.id)}
-                    className="bg-red-500 text-white px-4 py-1 rounded"
+                    onClick={toggleRegistrationStatus}
+                    className={`inline-flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium ${
+                      isRegistrationBlocked
+                        ? 'border-green-500 text-green-700 hover:bg-green-50'
+                        : 'border-red-500 text-red-700 hover:bg-red-50'
+                    }`}
                   >
-                    Remove
+                    {isRegistrationBlocked ? 'Enable Registration' : 'Disable Registration'}
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  <button
+                    onClick={downloadPDF}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </button>
+                </div>
+              </div>
 
-      <div className="mt-4">
-        <button
-          onClick={downloadPDF}
-          className="bg-green-700 text-white px-6 py-2 rounded hover:bg-blue-600"
-        >
-          Download PDF
-        </button>
-      </div>
+              <StudentTable
+                users={users}
+                searchTerm={searchTerm}
+                onToggleAttendance={handleToggleAttendance}
+                onTogglePayment={handleTogglePayment}
+                onUpdateBatch={handleUpdateBatch}
+                onUpdateNote={handleUpdateNote}
+                onRemoveUser={handleRemoveUser}
+              />
+            </div>
+          </div>
 
-      <div className="mt-4 p-6 border border-gray-300 rounded-lg shadow-md bg-white max-w-md mx-auto">
-  <h3 className="text-xl font-semibold text-gray-800 mb-4">Registration Settings</h3>
-  <div className="flex flex-col md:flex-row justify-between items-center">
-    <button
-      onClick={blockRegistration}
-      className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 transition duration-200 mb-2 md:mb-0 md:mr-2 w-full md:w-auto"
-    >
-      Block Registration
-    </button>
-    <button
-      onClick={unblockRegistration}
-      className="bg-green-700 text-white p-2 rounded-md hover:bg-green-600 transition duration-200 w-full md:w-auto"
-    >
-      Unblock Registration
-    </button>
-  </div>
-  <br />
-  <p className="mt-4 text-gray-700">
-    Registration is currently - <span className="font-bold">{isRegistrationBlocked ? "blocked 🔴" : "open 🟢"}</span>.
-  </p>
-</div>
-<br />
+          <div className="lg:col-span-1">
+            {selectedUser && (
+              <AttendanceCalendar
+                attendance={selectedUser.attendance}
+                onDateClick={(date) => handleToggleAttendance(selectedUser, date)}
+              />
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
-};
-
-export default AdminDashboard;
+}

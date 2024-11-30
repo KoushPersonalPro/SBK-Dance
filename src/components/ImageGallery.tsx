@@ -13,24 +13,39 @@ const images = [
 
 const ImageCarousel: React.FC = () => {
   return (
-    <div className="overflow-hidden w-full mx-auto px-4"> {/* Added padding */}
-      <div className="flex animate-scroll">
+    <div className="relative overflow-hidden w-full mx-auto px-4 py-8 bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50 rounded-lg shadow-lg">
+      {/* Gradient Overlays for visual effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white pointer-events-none z-10"></div>
+
+      <div className="flex gap-4 animate-scroll relative z-20">
         {/* Render images with a clone of the first three for seamless looping */}
         {images.map((image, index) => (
-          <img
+          <div
             key={index}
-            src={image.src}
-            alt={image.alt}
-            className="w-[300px] h-80 object-cover flex-shrink-0" // Increased height to h-80
-          />
+            className="w-[300px] h-80 flex-shrink-0 overflow-hidden rounded-lg shadow-md relative group"
+          >
+            <img
+              src={image.src}
+              alt={image.alt}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            {/* Gradient overlay on hover */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
         ))}
-        {images.slice(0, 3).map((image, index) => ( // Clone first 3 images
-          <img
+        {images.slice(0, 3).map((image, index) => (
+          <div
             key={`clone-${index}`}
-            src={image.src}
-            alt={image.alt}
-            className="w-[300px] h-80 object-cover flex-shrink-0" // Increased height to h-80
-          />
+            className="w-[300px] h-80 flex-shrink-0 overflow-hidden rounded-lg shadow-md relative group"
+          >
+            <img
+              src={image.src}
+              alt={image.alt}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            {/* Gradient overlay on hover */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
         ))}
       </div>
     </div>

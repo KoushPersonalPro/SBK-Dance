@@ -1,27 +1,35 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Download, Expand, X, Loader2 } from 'lucide-react';
+import { useInView } from 'react-intersection-observer';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
-// Define a type for your gallery items
 interface GalleryItem {
   id: string;
-  url: string; // Add any other properties you expect to have
+  url: string;
   name: string;
-  type: 'image' | 'video'; // Use union type for type
-  description?: string; // Optional if not all items have descriptions
+  type: 'image' | 'video';
+  description?: string;
+  category?: string;
 }
 
-export default function Galleryshow() {
-  // Specify the type for the gallery state
+export default function GalleryShow() {
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<GalleryItem | null>(null);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
 
   useEffect(() => {
-    fetchGallery(); // Fetch the gallery items when the component mounts
+    fetchGallery();
   }, []);
 
   const fetchGallery = async () => {
@@ -41,64 +49,193 @@ export default function Galleryshow() {
 
   const handleDownload = (item: GalleryItem) => {
     const link = document.createElement('a');
-    link.href = item.url; // Use the URL from Firestore for download
+    link.href = item.url;
     link.download = item.name;
     link.click();
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  const filteredGallery = gallery.filter(item => 
+    activeFilter === 'all' || item.category === activeFilter
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-red-500">{error}</p>
+          <button
+            onClick={fetchGallery}
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-black">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
-      <main className="flex-grow">
-        <section className="py-16 bg-gray-100">
-          <div className="container mx-auto px-4">
-            <h1 className="text-4xl font-bold text-center mb-10">Our Dance Gallery</h1>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-              {gallery.map((item) => (
-                item.type === 'image' ? (
-                  <div key={item.id} className="relative">
-                    <img
-                      src={item.url} // Use the URL from Firestore
-                      alt={item.name} 
-                      className="w-full h-auto object-cover rounded-lg" // Added rounded corners for aesthetics
-                    />
-                    <div className="absolute bottom-2 left-2 p-1 flex items-center">
-                      <button onClick={() => handleDownload(item)} className="border border-black bg-transparent p-1 rounded-full flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 15v2a2 2 0 002 2h12a2 2 0 002-2v-2m-6-3l-2 2m0 0l-2-2m2 2V3" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                ) : null // Only show images here
-              ))}
-            </div>
+      
+      {/* Hero Section */}
+      <div className="relative h-[60vh] bg-gradient-to-r from-purple-900 to-indigo-900">
+        <div className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-20" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative container mx-auto px-4 h-full flex items-center justify-center text-center"
+        >
+          <div>
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+              Cultural Heritage Gallery
+            </h1>
+            <p className="text-xl text-gray-200 max-w-2xl mx-auto">
+              Discover the rich tapestry of our cultural heritage through a stunning collection 
+              of moments captured in time
+            </p>
           </div>
-        </section>
+        </motion.div>
+      </div>
+      <br/>
 
-        {/* Video Section */}
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-10">Our Video Gallery</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-              {gallery.map((item) => (
-                item.type === 'video' ? (
-                  <div key={item.id} className="mb-5">
-                    <video controls className="w-full h-auto rounded-lg"> {/* Added rounded corners for aesthetics */}
-                      <source src={item.url} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                    <p className="text-lg text-center">{item.description}</p>
+      {/* Gallery Section */}
+      <main className="flex-grow py-16 container mx-auto px-4">
+        {/* Filter Buttons */}
+        <div className="flex flex-wrap justify-center gap-4 mb-12">
+          {['all', 'dance', 'festival'].map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              className={`px-6 py-2 rounded-full transition-all ${
+                activeFilter === filter
+                  ? 'bg-gray-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {filter.charAt(0).toUpperCase() + filter.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {/* Images Grid */}
+        <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          <AnimatePresence>
+            {filteredGallery.map((item, index) => (
+              item.type === 'image' && (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="group relative overflow-hidden rounded-xl shadow-lg bg-white"
+                >
+                  <div className="aspect-w-1 aspect-h-1">
+                    <img
+                      src={item.url}
+                      alt={item.name}
+                      className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
+                    />
                   </div>
-                ) : null // Only show videos here
-              ))}
-            </div>
-          </div>
-        </section>
+                  <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+                    <button
+                      onClick={() => handleDownload(item)}
+                      className="p-3 bg-white rounded-full hover:bg-gray-100 transition-colors"
+                      title="Download"
+                    >
+                      <Download className="h-5 w-5 text-gray-900" />
+                    </button>
+                    <button
+                      onClick={() => setSelectedImage(item)}
+                      className="p-3 bg-white rounded-full hover:bg-gray-100 transition-colors"
+                      title="Expand"
+                    >
+                      <Expand className="h-5 w-5 text-gray-900" />
+                    </button>
+                  </div>
+                </motion.div>
+              )
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* Videos Section */}
+        <h2 className="text-3xl font-bold text-center mt-20 mb-12 text-gray-700">Video Gallery</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {filteredGallery.map((item, index) => (
+            item.type === 'video' && (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="rounded-xl overflow-hidden shadow-lg bg-white"
+              >
+                <video
+                  controls
+                  className="w-full h-auto"
+                  poster={item.url.replace('.mp4', '-thumb.jpg')}
+                >
+                  <source src={item.url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                {item.description && (
+                  <div className="p-4">
+                    <p className="text-lg text-gray-700">{item.description}</p>
+                  </div>
+                )}
+              </motion.div>
+            )
+          ))}
+        </div>
       </main>
+
+      {/* Image Modal */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedImage(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.5 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.5 }}
+              className="relative max-w-4xl w-full"
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute -top-12 right-0 text-white hover:text-gray-300"
+              >
+                <X className="h-8 w-8" />
+              </button>
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.name}
+                className="w-full h-auto rounded-lg"
+              />
+              {selectedImage.description && (
+                <p className="mt-4 text-white text-center">{selectedImage.description}</p>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Footer />
     </div>
   );
