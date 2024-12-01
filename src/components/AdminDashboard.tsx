@@ -1,5 +1,20 @@
 "use client";
-export interface User {
+
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Download, LogOut, Settings, Search, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { format } from 'date-fns';
+import { db } from '@/lib/firebase';
+import { collection, getDocs, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import StudentTable from './AdminDashboard/StudentTable';
+import DashboardStats from './AdminDashboard/DashboardStats';
+import AttendanceCalendar from './AdminDashboard/AttendanceCalender';
+
+interface User {
   id: string;
   studentName: string;
   studentImage: string;
@@ -14,28 +29,13 @@ export interface User {
   note?: string;
 }
 
-
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Download, LogOut, Settings, Home } from 'lucide-react';
-// import { User } from '././AdminDashboard/types';
-import StudentTable from './AdminDashboard/StudentTable';
-import DashboardStats from './AdminDashboard/DashboardStats';
-import AttendanceCalendar from './AdminDashboard/AttendanceCalender';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import { format } from 'date-fns';
-import Link from 'next/link';
-
 export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [isRegistrationBlocked, setIsRegistrationBlocked] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -164,16 +164,29 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
+      {/* Header */}
+      <header className="bg-white shadow sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Link className="text-2xl font-bold text-gray-900" href="/">Admin Dashboard</Link>
-              <p className="ml-4 text-sm text-gray-500">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+            <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
+              <Link className="text-2xl font-bold text-gray-900" href="/">
+                Admin Dashboard
+              </Link>
+              <p className="text-sm text-gray-500">
                 {format(new Date(), 'EEEE, MMMM d, yyyy')}
               </p>
             </div>
-            <div className="flex items-center space-x-4">
+            
+            {/* Mobile menu button */}
+            <button
+              className="md:hidden flex items-center"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <ChevronDown className={`h-6 w-6 transform ${isMobileMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Desktop navigation */}
+            <div className="hidden md:flex items-center space-x-4">
               <button
                 onClick={() => router.push('/admin/update-gallery')}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -190,29 +203,52 @@ export default function AdminDashboard() {
               </button>
             </div>
           </div>
+
+          {/* Mobile navigation */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden mt-4 space-y-2">
+              <button
+                onClick={() => router.push('/admin/update-gallery')}
+                className="w-full inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Gallery Settings
+              </button>
+              <button
+                onClick={handleLogout}
+                className="w-full inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <DashboardStats users={users} />
 
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-white shadow rounded-lg">
-            <div className="p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                <div className="flex-1 min-w-0">
+        <div className="mt-8 grid grid-cols-1 xl:grid-cols-3 gap-8">
+          <div className="xl:col-span-2 bg-white shadow rounded-lg">
+            <div className="p-4 sm:p-6">
+              <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-6">
+                <div className="relative flex-1 min-w-0">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                  </div>
                   <input
                     type="text"
                     placeholder="Search students..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-xs w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   />
                 </div>
-                <div className="mt-4 sm:mt-0 flex space-x-4">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                   <button
                     onClick={toggleRegistrationStatus}
-                    className={`inline-flex items-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium ${
+                    className={`inline-flex items-center justify-center px-4 py-2 border rounded-md shadow-sm text-sm font-medium ${
                       isRegistrationBlocked
                         ? 'border-green-500 text-green-700 hover:bg-green-50'
                         : 'border-red-500 text-red-700 hover:bg-red-50'
@@ -222,7 +258,7 @@ export default function AdminDashboard() {
                   </button>
                   <button
                     onClick={downloadPDF}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                   >
                     <Download className="h-4 w-4 mr-2" />
                     Export PDF
@@ -230,24 +266,28 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <StudentTable
-                users={users}
-                searchTerm={searchTerm}
-                onToggleAttendance={handleToggleAttendance}
-                onTogglePayment={handleTogglePayment}
-                onUpdateBatch={handleUpdateBatch}
-                onUpdateNote={handleUpdateNote}
-                onRemoveUser={handleRemoveUser}
-              />
+              <div className="overflow-x-auto">
+                <StudentTable
+                  users={users}
+                  searchTerm={searchTerm}
+                  onToggleAttendance={handleToggleAttendance}
+                  onTogglePayment={handleTogglePayment}
+                  onUpdateBatch={handleUpdateBatch}
+                  onUpdateNote={handleUpdateNote}
+                  onRemoveUser={handleRemoveUser}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="xl:col-span-1">
             {selectedUser && (
-              <AttendanceCalendar
-                attendance={selectedUser.attendance}
-                onDateClick={(date) => handleToggleAttendance(selectedUser, date)}
-              />
+              <div className="bg-white shadow rounded-lg p-4">
+                <AttendanceCalendar
+                  attendance={selectedUser.attendance}
+                  onDateClick={(date) => handleToggleAttendance(selectedUser, date)}
+                />
+              </div>
             )}
           </div>
         </div>
