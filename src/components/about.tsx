@@ -10,7 +10,7 @@ import LampGame from '@/components/LampGame';
 const stats = [
   { icon: Users, label: 'Students Trained', value: '700+' },
   { icon: Music4, label: 'Years of Legacy', value: '17+' },
-  { icon: Award, label: 'Performances', value: '300+' },
+  { icon: Award, label: 'Performances', value: '500+' },
 ];
 
 export default function About() {
