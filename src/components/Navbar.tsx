@@ -58,6 +58,9 @@ export default function Navbar() {
           <Link href="/galleryshow" className="text-gray-600 hover:text-gray-800">
             Gallery
           </Link>
+          <Link href="https://sbkcalls.netlify.app/" target='_blank' className="text-gray-600 hover:text-gray-800">
+            Online Meetings
+          </Link>
           <Link href="/" className="text-gray-600 hover:text-gray-800">
             Contact Us
           </Link>
@@ -104,6 +107,9 @@ export default function Navbar() {
           </Link>
           <Link href="/galleryshow" className="block text-gray-600 hover:text-gray-800">
             Gallery
+          </Link>
+          <Link href="https://sbkcalls.netlify.app/" target='_blank' className="block text-gray-600 hover:text-gray-800">
+            Online Meetings
           </Link>
           <Link href="/" className="block text-gray-600 hover:text-gray-800">
             Contact Us
