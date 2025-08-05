@@ -12,7 +12,8 @@ interface AttendanceHistoryProps {
   attendance?: Record<string, string>; // Passed as a prop or loaded later
 }
 
-const AttendanceHistory: React.FC<AttendanceHistoryProps> = ({ attendance = {} }) => {
+const AttendanceHistory: React.FC<AttendanceHistoryProps> = ({ attendance }) => {
+  const attendanceData = attendance || {};
   const now = new Date();
   const months = eachMonthOfInterval({
     start: startOfYear(now),
@@ -20,39 +21,25 @@ const AttendanceHistory: React.FC<AttendanceHistoryProps> = ({ attendance = {} }
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentAttendance, setCurrentAttendance] = useState<Record<string, string>>(attendance);
+  const [currentAttendance, setCurrentAttendance] = useState<Record<string, string>>(attendance || {});
   const router = useRouter();
 
-  // Check admin authentication
+  // Check authentication
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-        router.push('/auth'); // Redirect to login page if not authenticated
-      }
+      setIsAuthenticated(!!user);
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
-  // Fetch attendance data from Firestore
-  const fetchAttendance = async () => {
-    const attendanceRef = doc(db, 'attendance', 'records');
-    const docSnap = await getDoc(attendanceRef);
-
-    if (docSnap.exists()) {
-      setCurrentAttendance(docSnap.data() as Record<string, string>);
-    }
-  };
-
+  // Use the attendance data passed as prop
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchAttendance();
+    if (attendance && Object.keys(attendance).length > 0) {
+      setCurrentAttendance(attendance);
     }
-  }, [isAuthenticated]);
+  }, [attendance]);
 
   return (
     <div className="mt-8">
@@ -70,12 +57,12 @@ const AttendanceHistory: React.FC<AttendanceHistoryProps> = ({ attendance = {} }
 
             const presentCount = days.reduce((count, day) => {
               const dateStr = format(day, 'yyyy-MM-dd');
-              return (currentAttendance[dateStr] ?? '') === 'P' ? count + 1 : count;
+              return (attendanceData[dateStr] ?? '') === 'P' ? count + 1 : count;
             }, 0);
 
             const absentCount = days.reduce((count, day) => {
               const dateStr = format(day, 'yyyy-MM-dd');
-              return (currentAttendance[dateStr] ?? '') === 'A' ? count + 1 : count;
+              return (attendanceData[dateStr] ?? '') === 'A' ? count + 1 : count;
             }, 0);
 
             return (
@@ -94,7 +81,7 @@ const AttendanceHistory: React.FC<AttendanceHistoryProps> = ({ attendance = {} }
                   ))}
                   {days.map((day) => {
                     const dateStr = format(day, 'yyyy-MM-dd');
-                    const status = currentAttendance[dateStr] ?? 'Pending';
+                    const status = attendanceData[dateStr] ?? 'Pending';
                     const isToday = format(now, 'yyyy-MM-dd') === dateStr;
 
                     return (

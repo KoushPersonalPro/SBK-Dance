@@ -5,24 +5,37 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
-import {toast, Toaster} from "react-hot-toast"
+import { toast, Toaster } from "react-hot-toast";
+import Image from "next/image";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [isRegistrationBlocked, setIsRegistrationBlocked] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Logged in successfully");
-
-      router.push("/dashboard");
-    } catch (err) {
-      setError("Login failed. Please try again.");
+      toast.success("Login successful! Redirecting...");
+      setTimeout(() => router.push("/dashboard"), 1500);
+    } catch (err: any) {
+      if (err.code === "auth/invalid-credential") {
+        setError("Invalid email or password. Please try again.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("Too many failed attempts. Please try again later.");
+      } else {
+        setError("Login failed. Please try again.");
+        console.error(err);
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -43,81 +56,146 @@ export default function Login() {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-yellow-50 to-white p-6">
-      <Toaster
-  position="top-center"
-  reverseOrder={false}
-/>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-white to-yellow-50 p-4 sm:p-6">
+      <Toaster position="top-center" reverseOrder={false} />
+      
       {/* Back Button */}
       <button
-        className="absolute top-5 left-5 text-yellow-700 hover:underline"
+        className="fixed top-4 left-4 sm:top-6 sm:left-6 flex items-center text-yellow-700 hover:text-yellow-600 transition-colors"
         onClick={() => router.push("/")}
       >
-        &lt; Back
+        <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span className="text-sm font-medium">Back to Home</span>
       </button>
 
       {/* Login Card */}
-      <div className="bg-white border border-yellow-200 rounded-lg shadow-md w-full max-w-md p-6">
+      <div className="bg-white border border-yellow-200 rounded-2xl shadow-lg w-full max-w-md p-6 sm:p-8">
+        {/* Logo */}
+        <div className="flex items-center justify-center mb-8">
+          <div className="relative w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+            <Image
+              src="/mudra.png"
+              alt="Dance Logo"
+              width={40}
+              height={40}
+              className="object-contain"
+            />
+          </div>
+        </div>
+
         {/* Title */}
-        <h2 className="text-2xl font-semibold text-center text-yellow-700 mb-4">
-          Login
-        </h2>
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-yellow-800 mb-2">Welcome Back!</h2>
+          <p className="text-gray-600">Sign in to continue your dance journey</p>
+        </div>
 
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-yellow-600 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="border border-yellow-300 rounded-md w-full px-3 py-2 text-gray-800 focus:outline-none focus:ring-1 focus:ring-yellow-500"
-              required
-            />
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                  </svg>
+                </div>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-black"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-black"
+                  required
+                />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-yellow-600 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="border border-yellow-300 rounded-md w-full px-3 py-2 text-gray-800 focus:outline-none focus:ring-1 focus:ring-yellow-500"
-              required
-            />
-          </div>
-
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <button
             type="submit"
-            className="w-full bg-yellow-500 text-white font-medium px-4 py-2 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            disabled={isLoading}
+            className="w-full flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Login
+            {isLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Signing in...
+              </>
+            ) : (
+              'Sign In'
+            )}
           </button>
         </form>
 
         {/* Registration Link */}
-        <p className="mt-6 text-sm text-center text-gray-700">
-          New here?{" "}
-          {isRegistrationBlocked ? (
-            <span className="text-red-500">Registration is blocked.</span>
-          ) : (
-            <a
-              href="/register_page"
-              className="text-yellow-600 hover:underline"
-            >
-              Register now
-            </a>
-          )}
-        </p>
+        <div className="mt-8 text-center">
+          <p className="text-sm text-gray-600">
+            New to our dance community?{" "}
+            {isRegistrationBlocked ? (
+              <span className="inline-flex items-center text-red-500">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+                </svg>
+                Registration is currently closed
+              </span>
+            ) : (
+              <a
+                href="/register_page"
+                className="font-medium text-yellow-600 hover:text-yellow-500 transition-colors"
+              >
+                Join us today
+              </a>
+            )}
+          </p>
+        </div>
       </div>
+      
     </div>
   );
 }

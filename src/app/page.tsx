@@ -104,11 +104,13 @@ export default function HomePage() {
               style={{ transform: 'scaleX(-1)' }}
             />
           </motion.div>
+          
         </section>
 
         {/* About Section */}
         <section className="py-16 bg-gradient-to-tl from-white to-gray-100 text-black">
           <About />
+          
         </section>
 
         {/* Gallery Section */}
@@ -122,6 +124,7 @@ export default function HomePage() {
         </section>
       </main>
       <Footer />
+      
     </div>
   );
 }

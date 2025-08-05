@@ -47,7 +47,7 @@ const Footer = () => {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400"
         >
-          <p>&copy; {new Date().getFullYear()} SBK Dance. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} SriLakshmi Bharatanatya Kalakshetram. All rights reserved.</p>
         </motion.div>
       </div>
     </footer>

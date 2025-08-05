@@ -224,7 +224,7 @@ import { format } from 'date-fns';
 import { Download, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import AttendanceHistory from '../../components/AttendanceHitory';
 
 interface UserData {
@@ -238,6 +238,7 @@ interface UserData {
   batchNo?: number;
   attendance: Record<string, string>;
   studentImage?: string;
+  email: string;
 }
 
 export default function Dashboard() {
@@ -245,26 +246,66 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        router.push('/auth');
-      } else if (user.email === 'test@gmail.com') {
-        router.push('/admin');
-      } else {
-        try {
-          const docRef = doc(db, 'users', user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            setUserData(docSnap.data() as UserData);
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
+    const fetchData = async (user: any) => {
+      try {
+        // First check if the user is admin
+        if (user.email === 'test@gmail.com') {
+          router.push('/admin');
+          return;
+        }
+
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setUserData({
+            ...data,
+            attendance: data.attendance || {}
+          } as UserData);
+        } else {
+          // If no user document exists, create a basic one
+          const basicUserData: UserData = {
+            studentName: user.email?.split('@')[0] || 'Student',
+            dob: '',
+            age: 0,
+            address: '',
+            parentName: '',
+            parentMobile: '',
+            paymentStatus: 'Pending',
+            attendance: {},
+            email: user.email || ''
+          };
+          
+          // Save the basic user data
+          await setDoc(doc(db, 'users', user.uid), basicUserData);
+          setUserData(basicUserData);
+        }
+      } catch (error) {
+        console.error("Error fetching/creating user data:", error);
+        // Only redirect to auth if there's a serious error
+        if (error instanceof Error && error.message.includes('permission-denied')) {
+          router.push('/auth');
         }
       }
+    };
+
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        router.push('/auth');
+        return;
+      }
+      
+      if (user.email === 'test@gmail.com') {
+        router.push('/admin');
+        return;
+      }
+
+      fetchData(user);
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
   if (!userData) {
     return (
@@ -378,6 +419,7 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+      
     </div>
   );
 }

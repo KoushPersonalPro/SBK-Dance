@@ -11,6 +11,7 @@ export interface User {
     paymentStatus: string;
     batchNo?: number;
     note?: string;
+    branch?: string;
   }
   
   export interface DashboardStatsProps {
