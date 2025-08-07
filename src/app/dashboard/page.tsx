@@ -226,6 +226,7 @@ import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import AttendanceHistory from '../../components/AttendanceHitory';
+import QRCode from '../../components/QRCode';
 
 interface UserData {
   studentName: string;
@@ -363,6 +364,11 @@ export default function Dashboard() {
                 </div>
               </div>
               
+            </div>
+
+            {/* QR Code Section */}
+            <div className="mt-8">
+              <QRCode userId={auth.currentUser?.uid || ''} studentName={userData.studentName} />
             </div>
 
             <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">

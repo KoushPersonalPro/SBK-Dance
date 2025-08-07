@@ -71,9 +71,9 @@ const AttendanceHistory: React.FC<AttendanceHistoryProps> = ({ attendance }) => 
                   {format(month, 'MMMM yyyy')}
                 </div>
                 <div className="grid grid-cols-7 gap-1">
-                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
+                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
                     <div
-                      key={day}
+                      key={`header-${day}-${index}`}
                       className="text-[10px] text-gray-400 font-medium text-center"
                     >
                       {day}

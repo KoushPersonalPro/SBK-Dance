@@ -25,10 +25,12 @@
     "jspdf-autotable": "^3.8.4",
     "lucide-react": "^0.462.0",
     "next": "14.2.14",
+    "qrcode.react": "^4.2.0",
     "react": "^18",
     "react-dom": "^18",
     "react-hot-toast": "^2.4.1",
     "react-intersection-observer": "^9.13.1",
+    "react-qr-scanner": "^1.0.0-alpha.11",
     "slick-carousel": "^1.8.1",
     "tailwind-merge": "^3.3.1"
   },
