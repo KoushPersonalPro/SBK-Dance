@@ -9,10 +9,16 @@ import Image from 'next/image';
 import { gsap } from 'gsap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function HomePage() {
   const heroRef = useRef(null);
   const [currentLangIndex, setCurrentLangIndex] = useState(0);
+  const [isRegistrationBlocked, setIsRegistrationBlocked] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     // GSAP Animation for Hero Section
@@ -27,11 +33,27 @@ export default function HomePage() {
       setCurrentLangIndex((prev) => (prev + 1) % 6);
     }, 2000);
 
+    // Check registration status
+    const checkRegistrationStatus = async () => {
+      try {
+        const docRef = doc(db, 'settings', 'registrationStatus');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setIsRegistrationBlocked(docSnap.data().blocked);
+        }
+      } catch (error) {
+        console.error('Error fetching registration status:', error);
+      }
+    };
+    
+    checkRegistrationStatus();
+
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-200 to-white">
+      <Toaster position="top-center" />
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
@@ -115,14 +137,20 @@ export default function HomePage() {
               transition={{ duration: 0.5, delay: 0.6 }}
             >
               <div className="flex justify-center w-full">
-                <a
-                  href="/register_page"
+                <button
+                  onClick={() => {
+                    if (isRegistrationBlocked) {
+                      toast.error('Registrations are currently closed. Please try again later.');
+                    } else {
+                      router.push('/register_page');
+                    }
+                  }}
                   className="flex items-center justify-center bg-gradient-to-r from-purple-100 to-pink-400 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full text-base sm:text-lg font-medium hover:from-purple-400 hover:to-pink-100 transition-colors duration-300 shadow-lg hover:shadow-xl hover:text-black min-w-[180px] max-w-full"
                   style={{ minWidth: 180 }}
                 >
                   Register Now
                   <ArrowRight className="w-4 h-4 ml-2" />
-                </a>
+                </button>
               </div>
             </motion.div>
           </motion.div>
