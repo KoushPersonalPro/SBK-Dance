@@ -181,7 +181,6 @@ const StudentTable: React.FC<StudentTableProps> = ({
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendance</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch</th>
@@ -209,9 +208,7 @@ const StudentTable: React.FC<StudentTableProps> = ({
                         </div>
                       </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-900">{user.branch || 'N/A'}</span>
-                    </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => onToggleAttendance(user, today)}
@@ -299,6 +296,10 @@ const StudentTable: React.FC<StudentTableProps> = ({
                           <div className="space-y-1">
                             <p className="text-sm font-medium text-gray-500">Branch</p>
                             <p className="text-sm text-gray-900">{user.branch || 'N/A'}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium text-gray-500">Address</p>
+                            <p className="text-sm text-gray-900">{user.address || 'N/A'}</p>
                           </div>
                           <div className="space-y-1">
                             <p className="text-sm font-medium text-gray-500">Profile Image</p>
