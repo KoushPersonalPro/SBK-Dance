@@ -34,42 +34,48 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white shadow-lg">
-      <div className="container mx-auto px-4 py-4 flex items-center">
-        {/* Logo Image */}
-        <img
-          src="nataraj.png" // Replace with your image path
-          alt="Logo"
-          className="w-12 h-12 rounded-full mr-3" // Adjust size and margin as needed
-        />
+      <div className="container mx-auto px-6 py-3 md:py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {/* Logo Image */}
+          <img
+            src="nataraj.png"
+            alt="Logo"
+            className="w-8 h-8 md:w-10 md:h-10 rounded-full"
+          />
 
-        {/* Site Title */}
-        <h1 className="text-2xl font-bold text-gray-800">
-          Sri Lakshmi Bharatanatya Kalakshetram
-        </h1>
+          {/* Site Title */}
+          <h1 className="text-base tracking-tight">
+            <span className="font-['Bitcount'] font-[200] text-2xl md:text-3xl text-black">SriLakshmi</span>{" "}
+            <span className="text-gray-700 text-[10px] md:text-sm font-xs">Bharatanatya Kalakshetram</span>
+          </h1>
+        </div>
 
         {/* Desktop Navbar */}
-        <div className="hidden md:flex space-x-6 ml-6"> {/* Added margin-left for spacing */}
-          <Link href="/" className="text-gray-600 hover:text-gray-800">
+        <div className="hidden md:flex items-center gap-8"> {/* Consistent gap */}
+          <Link href="/" className="text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
             Home
           </Link>
-          <Link href="/" className="text-gray-600 hover:text-gray-800">
+          <Link href="/" className="text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
             About Us
           </Link>
-          <Link href="/galleryshow" className="text-gray-600 hover:text-gray-800">
+          <Link href="/galleryshow" className="text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
             Gallery
           </Link>
-          <Link href="https://sbkcalls.netlify.app/" target='_blank' className="text-gray-600 hover:text-gray-800">
+          <Link href="/#announcements" className="text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
+            Announcements
+          </Link>
+          <Link href="https://sbkcalls.netlify.app/" target='_blank' className="text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
             Online Meetings
           </Link>
-          <Link href="/" className="text-gray-600 hover:text-gray-800">
+          <Link href="/" className="text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
             Contact Us
           </Link>
           {user ? (
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-800">
+            <Link href="/dashboard" className="text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
               Dashboard
             </Link>
           ) : (
-            <button onClick={handleLoginClick} className="text-gray-600 hover:text-gray-800">
+            <button onClick={handleLoginClick} className="text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
               Login
             </button>
           )}
@@ -98,30 +104,33 @@ export default function Navbar() {
 
       {/* Mobile Navbar Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white py-4 px-4 space-y-2">
-          <Link href="/" className="block text-gray-600 hover:text-gray-800">
+        <div className="md:hidden bg-white py-6 px-6 space-y-4">
+          <Link href="/" className="block text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
             Home
           </Link>
-          <Link href="/" className="block text-gray-600 hover:text-gray-800">
+          <Link href="/" className="block text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
             About Us
           </Link>
-          <Link href="/galleryshow" className="block text-gray-600 hover:text-gray-800">
+          <Link href="/galleryshow" className="block text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
             Gallery
           </Link>
-          <Link href="https://sbkcalls.netlify.app/" target='_blank' className="block text-gray-600 hover:text-gray-800">
+          <Link href="/#announcements" className="block text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
+            Announcements
+          </Link>
+          <Link href="https://sbkcalls.netlify.app/" target='_blank' className="block text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
             Online Meetings
           </Link>
-          <Link href="/" className="block text-gray-600 hover:text-gray-800">
+          <Link href="/" className="block text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
             Contact Us
           </Link>
           {user ? (
-            <Link href="/dashboard" className="block text-gray-600 hover:text-gray-800">
+            <Link href="/dashboard" className="block text-black text-[15px] font-[300] hover:opacity-70 transition-opacity">
               Dashboard
             </Link>
           ) : (
             <button
               onClick={handleLoginClick}
-              className="block text-gray-600 hover:text-gray-800"
+              className="block text-black text-[15px] font-[300] hover:opacity-70 transition-opacity w-full text-left"
             >
               Login
             </button>

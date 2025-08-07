@@ -87,19 +87,33 @@ export default function GalleryShow() {
       <Navbar />
       
       {/* Hero Section */}
-      <div className="relative h-[60vh] bg-gradient-to-r from-purple-900 to-indigo-900">
-        <div className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-20" />
+      <div className="relative h-[60vh] overflow-hidden">
+        {/* Video Background */}
+        <div className="absolute inset-0 w-full h-full">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover blur-[2px]"
+          >
+            <source src="/Nataraja Animation.mp4" type="video/mp4" />
+          </video>
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative container mx-auto px-4 h-full flex items-center justify-center text-center"
+          className="relative container mx-auto px-4 h-full flex items-center justify-center text-center z-10"
         >
           <div>
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
+            <h1 className="text-5xl md:text-6xl font-[400] font-semibold mb-6">
               Cultural Heritage Gallery
             </h1>
-            <p className="text-xl text-gray-200 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-200 max-w-2xl mx-auto font-[300]">
               Discover the rich tapestry of our cultural heritage through a stunning collection 
               of moments captured in time
             </p>
@@ -127,8 +141,8 @@ export default function GalleryShow() {
           ))}
         </div>
 
-        {/* Images Grid */}
-        <div ref={ref} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        {/* Images Grid - Pinterest Style */}
+        <div ref={ref} className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
           <AnimatePresence>
             {filteredGallery.map((item, index) => (
               item.type === 'image' && (
@@ -138,13 +152,13 @@ export default function GalleryShow() {
                   animate={inView ? { opacity: 1, y: 0 } : {}}
                   exit={{ opacity: 0, scale: 0.5 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="group relative overflow-hidden rounded-xl shadow-lg bg-white"
+                  className="group relative overflow-hidden rounded-xl shadow-lg bg-white break-inside-avoid mb-4"
                 >
-                  <div className="aspect-w-1 aspect-h-1">
+                  <div className="relative">
                     <img
                       src={item.url}
                       alt={item.name}
-                      className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
+                      className="w-full object-cover transform transition-transform duration-300 group-hover:scale-110"
                     />
                   </div>
                   <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">

@@ -9,12 +9,40 @@ export default function Gallery() {
 
   return (
     <div className="space-y-12">
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Spotlights 🪶</h2>
-        <ImageCarousel />
+      <section className="bg-white py-12">
+        <div className="relative flex flex-col items-center justify-center mb-12 cursor-default">
+          {/* Decorative Lines */}
+          <div className="absolute top-1/2 w-full h-[2px] overflow-hidden">
+            <div className="w-full h-full bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+          </div>
+          
+          {/* Title Container */}
+          <div className="relative z-10 px-8 py-4 bg-white">
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight flex items-center gap-4">
+              <span className="animate-bounce">🪶</span>
+              <span className="relative">
+                <span className="absolute -inset-1 bg-gradient-to-r from-black via-gray-500 to-white blur-lg opacity-20"></span>
+                <span className="font-['Bitcount'] font-[300] relative bg-gradient-to-r from-black via-gray-700 to-white bg-clip-text text-transparent">
+                  Spotlights
+                </span>
+              </span>
+              <span className="animate-pulse">✨</span>
+            </h2>
+          </div>
+
+          {/* Decorative Bottom Line */}
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-1">
+            <div className="w-full h-full bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full"></div>
+          </div>
+        </div>
+
+        {/* Carousel */}
+        <div className="mt-8">
+          <ImageCarousel />
+        </div>
       </section>
 
-      <section className="bg-white rounded-lg shadow-lg p-6">
+      <section id="announcements" className="bg-white rounded-lg shadow-lg p-6 scroll-mt-20">
         <h2 className="text-2xl font-semibold mb-6 text-gray-800">Announcements 📢</h2>
         
         <div className="space-y-6">

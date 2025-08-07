@@ -1,6 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Bitcount:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@300;400&family=Noto+Sans+Kannada:wght@300;400&family=Noto+Sans+Devanagari:wght@300;400&family=Noto+Sans+Tamil:wght@300;400&family=Noto+Sans+Malayalam:wght@300;400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  .font-telugu {
+    font-family: 'Noto Sans Telugu', sans-serif;
+  }
+  .font-kannada {
+    font-family: 'Noto Sans Kannada', sans-serif;
+  }
+  .font-hindi {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+  }
+  .font-tamil {
+    font-family: 'Noto Sans Tamil', sans-serif;
+  }
+  .font-malayalam {
+    font-family: 'Noto Sans Malayalam', sans-serif;
+  }
+}
+
+@keyframes textGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
 
 :root {
   --background: #ffffff;

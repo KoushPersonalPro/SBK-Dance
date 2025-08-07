@@ -1,6 +1,6 @@
 "use client";
-import React from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { Music4, Users, Award, Sparkles } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -8,8 +8,8 @@ import Footer from '@/components/Footer';
 import LampGame from '@/components/LampGame';
 
 const stats = [
-  { icon: Users, label: 'Students Trained', value: '700+' },
-  { icon: Music4, label: 'Years of Legacy', value: '17+' },
+  { icon: Users, label: 'Students Trained', value: '1000+' },
+  { icon: Music4, label: 'Years of Legacy', value: '20+' },
   { icon: Award, label: 'Performances', value: '500+' },
 ];
 
@@ -18,6 +18,25 @@ export default function About() {
   const y1 = useTransform(scrollY, [0, 300], [0, 100]);
   const y2 = useTransform(scrollY, [0, 300], [0, -100]);
   
+  const [currentNameIndex, setCurrentNameIndex] = useState(0);
+  const names = [
+    "Smt. S. Sri Lakshmi",
+    "శ్రీమతి ఎస్. శ్రీ లక్ష్మి",
+    "Smt. S. Sri Lakshmi",
+    "ಶ್ರೀಮತಿ ಎಸ್. ಶ್ರೀ ಲಕ್ಷ್ಮಿ",
+    "Smt. S. Sri Lakshmi",
+    "श्रीमती एस. श्री लक्ष्मी",
+    "Smt. S. Sri Lakshmi",
+    "ஸ்ரீமதி எஸ். ஸ்ரீ லக்ஷ்மி"
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentNameIndex((prev) => (prev + 1) % names.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -59,10 +78,13 @@ export default function About() {
           <div className="max-w-4xl mx-auto">
             <div className="space-y-8 text-center mb-16">
               {[
-                "Sri Lakshmi Bharatanatya Kalakshetram, established in November 2006 by Smt. S. Sri Lakshmi Siva Sankar, began with just four dedicated students. Over the years, it has blossomed into a vibrant institution where more than 100 students actively learn the art of Bharatanatyam, with over 700 students trained since its inception.",
-                "Our students have had the privilege of performing at numerous prestigious venues and cultural events, including Kanipakam, Mahathi Auditorium in Tirupati (Abhinaya Arts), Rangastali, Shilpa Ramam in Tirupati, Sri Kalahasti Temple, Batu Caves in Malaysia, and various local cultural programs in Chittoor.",
-                "In addition, our students regularly participate in Bharatanatyam Grade Exams (Levels 1-8) at Annamalai University, Vellore, achieving outstanding results with distinctions, reflecting their passion and commitment to this classical dance form."
-              ].map((text, index) => (
+  "Sri Lakshmi Bharatanatya Kalakshetram, established in November 2006 by Smt. S. Sri Lakshmi Siva Sankar, began with just four dedicated students. She started teaching Bharatanatyam in 1997 in Tamil Nadu, laying the foundation for what would become a respected institution. Today, the Kalakshetram has blossomed into a vibrant center where over 200 students actively learn the art of Bharatanatyam, and more than 1000 students have been trained since its inception.",
+  
+  "Our students have had the honor of performing at numerous prestigious venues and cultural events, including Kanipakam, Mahathi Auditorium in Tirupati (Abhinaya Arts), Rangastali, Shilparamam in Tirupati, Sri Kalahasti Temple, Batu Caves in Malaysia, and various national and local programs across India. These performances highlight their dedication to preserving and sharing classical Indian dance.",
+  
+  "Additionally, our students consistently participate in Bharatanatyam Grade Exams (Levels 1-8) at Annamalai University, Vellore. With a track record of achieving distinctions, these results reflect their commitment, discipline, and passion for mastering this traditional art form under expert guidance."
+]
+.map((text, index) => (
                 <motion.p
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
@@ -96,9 +118,52 @@ export default function About() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  Guru: Smt. S. Sri Lakshmi
-                </h3>
+                <div className="flex flex-col items-center justify-center mb-4">
+                  <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span className='text-orange-500'>Guru: </span>
+                  </h3>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="relative h-12 w-full flex justify-center overflow-hidden"
+                  >
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={names[currentNameIndex]}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ 
+                          opacity: 1, 
+                          y: 0,
+                          transition: {
+                            y: { type: "spring", stiffness: 100, damping: 15 },
+                            opacity: { duration: 0.4 }
+                          }
+                        }}
+                        exit={{ 
+                          opacity: 0,
+                          y: -50,
+                          transition: {
+                            y: { type: "spring", stiffness: 100, damping: 15 },
+                            opacity: { duration: 0.4 }
+                          }
+                        }}
+                        className={`absolute text-center ${
+                          currentNameIndex === 1 ? 'font-telugu text-2xl' :
+                          currentNameIndex === 2 ? 'font-kannada text-2xl' :
+                          currentNameIndex === 3 ? 'font-hindi text-2xl' :
+                          currentNameIndex === 4 ? 'font-tamil text-2xl' :
+                          'font-[300] text-2xl'
+                        }`}
+                        style={{
+                          minWidth: '300px',
+                          display: 'block'
+                        }}
+                      >
+                        {names[currentNameIndex]}
+                      </motion.span>
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
                 <p className="text-gray-600">Founder & Principal Instructor</p>
               </motion.div>
             </motion.div>

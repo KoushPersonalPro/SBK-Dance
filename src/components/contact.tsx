@@ -44,7 +44,7 @@ export default function Contact() {
       {/* Mapbox Section */}
       <div className="mapbox mb-8">
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d840.8547109048808!2d79.09272716952248!3d13.202107304856362!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTPCsDEyJzA3LjYiTiA3OcKwMDUnMzYuMSJF!5e1!3m2!1sen!2sin!4v1728758663147!5m2!1sen!2sin"
+          src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d407.1990759420608!2d79.09433314613729!3d13.203217589477825!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2sin!4v1754553314449!5m2!1sen!2sin"
           width="100%"
           height="450"
           className="rounded-lg border border-gray-200"
