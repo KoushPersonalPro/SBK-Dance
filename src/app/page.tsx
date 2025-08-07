@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { gsap } from 'gsap';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 
 export default function HomePage() {
   const heroRef = useRef(null);
@@ -113,12 +114,16 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
             >
-              <a
-                href="/auth"
-                className="inline-block bg-gradient-to-r from-purple-100 to-pink-400 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full text-base sm:text-lg font-medium hover:from-purple-400 hover:to-pink-100 transition-colors duration-300 shadow-lg hover:shadow-xl"
-              >
-                Explore More
-              </a>
+              <div className="flex justify-center w-full">
+                <a
+                  href="/register_page"
+                  className="flex items-center justify-center bg-gradient-to-r from-purple-100 to-pink-400 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full text-base sm:text-lg font-medium hover:from-purple-400 hover:to-pink-100 transition-colors duration-300 shadow-lg hover:shadow-xl hover:text-black min-w-[180px] max-w-full"
+                  style={{ minWidth: 180 }}
+                >
+                  Register Now
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </a>
+              </div>
             </motion.div>
           </motion.div>
 
